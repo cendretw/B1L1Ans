@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英文1 進階卷 第1回 教學與解答系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: text;
+    }
+    
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Canvas annotation overlay styles */
+    .annotation-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    .annotation-canvas.active-draw {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    /* Custom smooth scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* High contrast focus ring */
+    .focus-marker {
+      background: linear-gradient(120deg, rgba(254, 240, 138, 0.6) 0%, rgba(254, 240, 138, 0.8) 100%);
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+
+    /* Pulse animation for key hints */
+    @keyframes gentle-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .pulse-hint {
+      animation: gentle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="bg-indigo-600 text-white font-bold p-2 rounded-xl text-lg flex items-center shadow-sm">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-slate-800 tracking-tight">英文1 進階卷 解答與教學系統</h1>
+            <span class="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded-full">Lesson 1 Firsts in Life</span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">專為大螢幕投影、分段配分教學與重點劃記設計</p>
+        </div>
+      </div>
+
+      <!-- Projection Font Sizer & Presentation Bar -->
+      <div class="flex items-center flex-wrap gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
+        <div class="flex items-center gap-1 text-xs text-slate-600 font-bold px-2">
+          <i class="fa-solid fa-magnifying-glass-plus text-indigo-600"></i>
+          <span>投影字級:</span>
+          <span id="fontScaleDisplay" class="text-indigo-700 font-mono">100%</span>
+        </div>
+        <div class="inline-flex rounded-lg shadow-xs bg-white border border-slate-200 p-0.5">
+          <button onclick="changeGlobalFontSize(-10)" title="縮小字體" class="px-2.5 py-1 text-slate-700 hover:bg-slate-100 rounded text-xs font-bold transition">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <button onclick="resetGlobalFontSize()" title="還原大小" class="px-2.5 py-1 text-slate-700 hover:bg-slate-100 rounded text-xs font-bold transition">
+            標準
+          </button>
+          <button onclick="changeGlobalFontSize(10)" title="放大字體" class="px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 rounded text-xs font-bold transition">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button onclick="changeGlobalFontSize(30)" title="特大投影級數" class="px-2 py-1 text-indigo-700 hover:bg-indigo-100 rounded text-xs font-black transition border-l border-slate-200">
+            投影+
+          </button>
+        </div>
+
+        <button onclick="toggleFullScreen()" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-expand"></i>
+          <span class="hidden md:inline">全螢幕投影</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="border-t border-slate-200 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto no-scrollbar gap-1 py-1.5">
+        <button onclick="switchTab('summary')" id="tabBtn-summary" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap bg-indigo-600 text-white shadow-sm">
+          <i class="fa-solid fa-list-check"></i>
+          <span>① 總解答速查 (含彩色翻譯)</span>
+        </button>
+        <button onclick="switchTab('sec1')" id="tabBtn-sec1" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-spell-check"></i>
+          <span>I. 文意字彙</span>
+        </button>
+        <button onclick="switchTab('sec2')" id="tabBtn-sec2" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>II. 綜合測驗</span>
+        </button>
+        <button onclick="switchTab('sec3')" id="tabBtn-sec3" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-puzzle-piece"></i>
+          <span>III. 文意選填</span>
+        </button>
+        <button onclick="switchTab('sec4')" id="tabBtn-sec4" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-book-open-reader"></i>
+          <span>IV. 閱讀測驗</span>
+        </button>
+        <button onclick="switchTab('sec5')" id="tabBtn-sec5" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-comments"></i>
+          <span>V. 混合題 (AI教練)</span>
+        </button>
+        <button onclick="switchTab('sec6')" id="tabBtn-sec6" class="tab-btn px-4 py-2 text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-language"></i>
+          <span>VI. 翻譯詳解</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dynamic Presentation Area -->
+  <main id="appContentRoot" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 transition-all duration-150" style="font-size: 16px;">
+    
+    <!-- ========================================================================= -->
+    <!-- TAB 1: 總解答與翻譯區段配分專用分頁 (首頁) -->
+    <!-- ========================================================================= -->
+    <div id="panel-summary" class="tab-panel space-y-6">
+      
+      <!-- Top banner reminder -->
+      <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-900 text-white rounded-3xl p-6 shadow-md relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <i class="fa-solid fa-bullhorn text-amber-300"></i> 教學投影模式 (Projector View)
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black tracking-tight">全卷總解答與分段配分速覽</h2>
+            <p class="text-blue-100 text-sm mt-1 max-w-2xl">
+              提供全班投影核對答案。支援上方放大功能；點選下方各題卡片可直接呼叫彈窗詳解。
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="expandAllSummary()" class="px-4 py-2 bg-white text-indigo-900 font-bold rounded-xl text-sm shadow hover:bg-blue-50 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-eye"></i> 顯示全卷解析
+            </button>
+            <button onclick="collapseAllSummary()" class="px-4 py-2 bg-indigo-800/80 text-white font-bold rounded-xl text-sm hover:bg-indigo-800 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-eye-slash"></i> 僅顯示純答案
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Answer Grid Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- I. 文意字彙 (1-10) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-indigo-200 transition">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-xs">I</span>
+              文意字彙 (20%)
+            </h3>
+            <button onclick="switchTab('sec1')" class="text-xs text-indigo-600 hover:underline font-bold">進入大題 &rarr;</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 1)">
+              <span class="text-slate-400 font-bold text-xs">1.</span> <span class="font-bold text-emerald-700">reply</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 2)">
+              <span class="text-slate-400 font-bold text-xs">2.</span> <span class="font-bold text-emerald-700">skipped</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 3)">
+              <span class="text-slate-400 font-bold text-xs">3.</span> <span class="font-bold text-emerald-700">accident</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 4)">
+              <span class="text-slate-400 font-bold text-xs">4.</span> <span class="font-bold text-emerald-700">upset</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 5)">
+              <span class="text-slate-400 font-bold text-xs">5.</span> <span class="font-bold text-emerald-700">traditional</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 6)">
+              <span class="text-slate-400 font-bold text-xs">6.</span> <span class="font-bold text-emerald-700">reflecting</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 7)">
+              <span class="text-slate-400 font-bold text-xs">7.</span> <span class="font-bold text-emerald-700">ruined</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 8)">
+              <span class="text-slate-400 font-bold text-xs">8.</span> <span class="font-bold text-emerald-700">fortunate</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 9)">
+              <span class="text-slate-400 font-bold text-xs">9.</span> <span class="font-bold text-emerald-700">memorize</span>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-emerald-50 transition" onclick="openQuestionModal('vocab', 10)">
+              <span class="text-slate-400 font-bold text-xs">10.</span> <span class="font-bold text-emerald-700">depression</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- II. 綜合測驗 (11-20) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-indigo-200 transition">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs">II</span>
+              綜合測驗 (20%)
+            </h3>
+            <button onclick="switchTab('sec2')" class="text-xs text-indigo-600 hover:underline font-bold">進入大題 &rarr;</button>
+          </div>
+          <div class="grid grid-cols-5 gap-2 text-center text-sm font-bold">
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 11)"><span class="text-xs text-slate-400 block font-normal">11</span><span class="text-blue-700 text-base">C</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 12)"><span class="text-xs text-slate-400 block font-normal">12</span><span class="text-blue-700 text-base">A</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 13)"><span class="text-xs text-slate-400 block font-normal">13</span><span class="text-blue-700 text-base">B</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 14)"><span class="text-xs text-slate-400 block font-normal">14</span><span class="text-blue-700 text-base">A</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 15)"><span class="text-xs text-slate-400 block font-normal">15</span><span class="text-blue-700 text-base">C</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 16)"><span class="text-xs text-slate-400 block font-normal">16</span><span class="text-blue-700 text-base">D</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 17)"><span class="text-xs text-slate-400 block font-normal">17</span><span class="text-blue-700 text-base">C</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 18)"><span class="text-xs text-slate-400 block font-normal">18</span><span class="text-blue-700 text-base">B</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 19)"><span class="text-xs text-slate-400 block font-normal">19</span><span class="text-blue-700 text-base">A</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 cursor-pointer" onclick="openQuestionModal('cloze', 20)"><span class="text-xs text-slate-400 block font-normal">20</span><span class="text-blue-700 text-base">D</span></div>
+          </div>
+        </div>
+
+        <!-- III. 文意選填 (21-30) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-indigo-200 transition">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xs">III</span>
+              文意選填 (20%)
+            </h3>
+            <button onclick="switchTab('sec3')" class="text-xs text-indigo-600 hover:underline font-bold">進入大題 &rarr;</button>
+          </div>
+          <div class="grid grid-cols-5 gap-2 text-center text-sm font-bold">
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 21)"><span class="text-xs text-slate-400 block font-normal">21</span><span class="text-amber-700 text-base">A</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 22)"><span class="text-xs text-slate-400 block font-normal">22</span><span class="text-amber-700 text-base">D</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 23)"><span class="text-xs text-slate-400 block font-normal">23</span><span class="text-amber-700 text-base">J</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 24)"><span class="text-xs text-slate-400 block font-normal">24</span><span class="text-amber-700 text-base">C</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 25)"><span class="text-xs text-slate-400 block font-normal">25</span><span class="text-amber-700 text-base">F</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 26)"><span class="text-xs text-slate-400 block font-normal">26</span><span class="text-amber-700 text-base">E</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 27)"><span class="text-xs text-slate-400 block font-normal">27</span><span class="text-amber-700 text-base">B</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 28)"><span class="text-xs text-slate-400 block font-normal">28</span><span class="text-amber-700 text-base">G</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 29)"><span class="text-xs text-slate-400 block font-normal">29</span><span class="text-amber-700 text-base">H</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="openQuestionModal('fillin', 30)"><span class="text-xs text-slate-400 block font-normal">30</span><span class="text-amber-700 text-base">I</span></div>
+          </div>
+        </div>
+
+        <!-- IV. 閱讀測驗 (31-33) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-indigo-200 transition">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xs">IV</span>
+              閱讀測驗 (9%)
+            </h3>
+            <button onclick="switchTab('sec4')" class="text-xs text-indigo-600 hover:underline font-bold">進入大題 &rarr;</button>
+          </div>
+          <div class="grid grid-cols-3 gap-3 text-center text-sm font-bold">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-purple-50 cursor-pointer" onclick="openQuestionModal('reading', 31)">
+              <span class="text-xs text-slate-400 block">31. 篇章主旨</span>
+              <span class="text-purple-700 text-xl font-black">D</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-purple-50 cursor-pointer" onclick="openQuestionModal('reading', 32)">
+              <span class="text-xs text-slate-400 block">32. 細節正誤</span>
+              <span class="text-purple-700 text-xl font-black">A</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-purple-50 cursor-pointer" onclick="openQuestionModal('reading', 33)">
+              <span class="text-xs text-slate-400 block">33. 作者態度</span>
+              <span class="text-purple-700 text-xl font-black">C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- V. 混合題 (34-36) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-indigo-200 transition lg:col-span-2">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center font-black text-xs">V</span>
+              混合題 (11%)
+            </h3>
+            <button onclick="switchTab('sec5')" class="text-xs text-indigo-600 hover:underline font-bold">進入大題與草稿分析 &rarr;</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-pink-50 cursor-pointer" onclick="openQuestionModal('mixed', 34)">
+              <span class="text-xs text-slate-400 block font-bold">34. 詞形變化填空 (4%)</span>
+              <span class="text-pink-700 font-bold">(1) presentation</span><br>
+              <span class="text-pink-700 font-bold">(2) preparation</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-pink-50 cursor-pointer" onclick="openQuestionModal('mixed', 35)">
+              <span class="text-xs text-slate-400 block font-bold">35. 多選題 (3%)</span>
+              <span class="text-pink-700 text-xl font-black">A, B, F</span>
+              <span class="text-xs text-slate-500 block">未符合的 AI 建議項目</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-pink-50 cursor-pointer" onclick="openQuestionModal('mixed', 36)">
+              <span class="text-xs text-slate-400 block font-bold">36. 簡答指涉題 (4%)</span>
+              <span class="text-pink-700 text-xl font-black">Failure</span>
+              <span class="text-xs text-slate-500 block">第一段核心單詞</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPECIAL FOCUS: VI. 翻譯部分 (分區段與配分用不同顏色標示) -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-indigo-200 shadow-md">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-1">
+              <i class="fa-solid fa-palette"></i> 核心評分重點標示
+            </div>
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+              VI. 翻譯題 分段給分彩色標示 (總分 20%)
+            </h3>
+          </div>
+          <div class="text-xs sm:text-sm bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            評分標準：分段給分，每一段錯 1 字扣 1 分，直到該段扣完為止。
+          </div>
+        </div>
+
+        <div class="space-y-6 text-base">
+          <!-- Translation 37 -->
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-slate-700 text-lg">37. 那家餐廳的牛排吃起來像鞋子的皮革。(5%)</span>
+              <button onclick="openQuestionModal('trans', 37)" class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold px-3 py-1 rounded-lg">
+                <i class="fa-solid fa-expand"></i> 彈窗詳解
+              </button>
+            </div>
+            <div class="p-4 bg-white rounded-xl border border-slate-200 font-mono-code leading-relaxed text-lg flex flex-wrap items-center gap-2">
+              <span class="bg-sky-100 text-sky-900 border-b-4 border-sky-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                The steak in that restaurant <span class="text-xs bg-sky-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-pink-100 text-pink-900 border-b-4 border-pink-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                tastes like <span class="text-xs bg-pink-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-emerald-100 text-emerald-900 border-b-4 border-emerald-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                shoe leather. <span class="text-xs bg-emerald-600 text-white px-1.5 py-0.5 rounded ml-1">1%</span>
+              </span>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 flex flex-wrap gap-4 pt-2">
+              <span><i class="fa-solid fa-tag text-sky-500"></i> 主詞段: 地方介系詞片語後位修飾 (The steak in that restaurant)</span>
+              <span><i class="fa-solid fa-tag text-pink-500"></i> 動詞段: 連綴動詞 taste like + 名詞</span>
+              <span><i class="fa-solid fa-tag text-emerald-500"></i> 受詞段: 單字 shoe leather (不可數)</span>
+            </div>
+          </div>
+
+          <!-- Translation 38 -->
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-slate-700 text-lg">38. Leo 不知道他女朋友昨天蹺課了。(7%)</span>
+              <button onclick="openQuestionModal('trans', 38)" class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold px-3 py-1 rounded-lg">
+                <i class="fa-solid fa-expand"></i> 彈窗詳解
+              </button>
+            </div>
+            <div class="p-4 bg-white rounded-xl border border-slate-200 font-mono-code leading-relaxed text-lg flex flex-wrap items-center gap-2">
+              <span class="bg-blue-100 text-blue-900 border-b-4 border-blue-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                Leo doesn't/didn't know <span class="text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded ml-1">3%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-fuchsia-100 text-fuchsia-900 border-b-4 border-fuchsia-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                that his girlfriend skipped class yesterday. <span class="text-xs bg-fuchsia-600 text-white px-1.5 py-0.5 rounded ml-1">4%</span>
+              </span>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 flex flex-wrap gap-4 pt-2">
+              <span><i class="fa-solid fa-tag text-blue-500"></i> 主句 (3%): 現況或過去知曉皆可 (doesn't / didn't know)</span>
+              <span><i class="fa-solid fa-tag text-fuchsia-500"></i> 名詞子句 (4%): that 導引子句 + 過去式 skipped + 慣用語 skip class</span>
+            </div>
+          </div>
+
+          <!-- Translation 39 -->
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-slate-700 text-lg">39. Debbie 等不及為嘉年華(carnival)裝扮，而且她會確保她的服裝看起來色彩繽紛。(8%)</span>
+              <button onclick="openQuestionModal('trans', 39)" class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold px-3 py-1 rounded-lg">
+                <i class="fa-solid fa-expand"></i> 彈窗詳解
+              </button>
+            </div>
+            <div class="p-4 bg-white rounded-xl border border-slate-200 font-mono-code leading-relaxed text-lg flex flex-wrap items-center gap-2">
+              <span class="bg-indigo-100 text-indigo-900 border-b-4 border-indigo-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                Debbie can't wait to <span class="text-xs bg-indigo-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-rose-100 text-rose-900 border-b-4 border-rose-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                dress up for the carnival <span class="text-xs bg-rose-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-teal-100 text-teal-900 border-b-4 border-teal-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                , and she will make sure <span class="text-xs bg-teal-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+              <span class="text-slate-400 font-bold text-lg">//</span>
+              <span class="bg-amber-100 text-amber-900 border-b-4 border-amber-500 font-bold px-2 py-1 rounded-md shadow-xs">
+                that her costume looks colorful. <span class="text-xs bg-amber-600 text-white px-1.5 py-0.5 rounded ml-1">2%</span>
+              </span>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 flex flex-wrap gap-4 pt-2">
+              <span><i class="fa-solid fa-tag text-indigo-500"></i> 片語 (2%): can't wait to + 原形動詞 (迫不及待)</span>
+              <span><i class="fa-solid fa-tag text-rose-500"></i> 片語 (2%): dress up for (為...精心打扮)</span>
+              <span><i class="fa-solid fa-tag text-teal-500"></i> 連接與動詞 (2%): and she will make sure (確保)</span>
+              <span><i class="fa-solid fa-tag text-amber-500"></i> 名詞子句 (2%): costume (服裝) + looks colorful (連綴+形容詞)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: I. 文意字彙與詞類變化 -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec1" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">I. 文意字彙與詞類變化 (20%)</h2>
+          <p class="text-xs sm:text-sm text-slate-500">點擊任一題目即可彈出特大字體進行講解，詳解按鈕可隨堂開關。</p>
+        </div>
+        <button onclick="toggleAllAnswers('sec1')" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">
+          一鍵切換全詳解
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="vocabQuestionsContainer">
+        <!-- Questions injected via JS -->
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: II. 綜合測驗 -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec2" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+        <h2 class="text-xl font-bold text-slate-800 mb-1">II. 綜合測驗 (20%) - Firsts in Life</h2>
+        <p class="text-xs sm:text-sm text-slate-500 mb-4">包含 Robbie 線上課程、Claire 小組報告失敗、Nancy 韓國旅遊三個初體驗故事。點擊題號跳出詳解彈窗與劃記板。</p>
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-sm leading-relaxed text-slate-700 space-y-3">
+          <p>
+            We all have experienced firsts in life. These 
+            <button onclick="openQuestionModal('cloze', 11)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">11. [C] memorable</button>
+            events bring up various feelings in us. They can make us happy, sad, or anything in between, and they are important for our growth as people. Let's take a quick look at 
+            <button onclick="openQuestionModal('cloze', 12)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">12. [A] a few</button>
+            different examples from some students' lives.
+          </p>
+          <p>
+            Robbie took his first online class about three years ago. He 
+            <button onclick="openQuestionModal('cloze', 13)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">13. [B] recalled</button>
+            some interesting experiences, such as using online tools and taking classes in his pajamas. However, afterward, Robbie felt 
+            <button onclick="openQuestionModal('cloze', 14)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">14. [A] that</button>
+            online lessons weren't for him. Being able to see and talk to his classmates 
+            <button onclick="openQuestionModal('cloze', 15)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">15. [C] in person</button>
+            was too important to him.
+          </p>
+          <p>
+            Claire also shared a school first, but her story is about a first 
+            <button onclick="openQuestionModal('cloze', 16)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">16. [D] failure</button>.
+            In a group project, Claire was the speaker for her group. The project was not very important to her, so she failed to attend several meetings. 
+            <button onclick="openQuestionModal('cloze', 17)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">17. [C] Since</button>
+            she was so unprepared, she did a very poor job of speaking and made a fool of herself in front of her classmates. On the positive side, Claire learned from this experience, and she 
+            <button onclick="openQuestionModal('cloze', 18)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">18. [B] takes ... seriously</button>
+            school more now.
+          </p>
+          <p>
+            Our final story comes from Nancy, and it is about her first trip to another country. She visited Seoul, South Korea. In this city, she ate some delicious Korean food and explored the busy streets. She even wore some historical Korean clothing so that she 
+            <button onclick="openQuestionModal('cloze', 19)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">19. [A] looked like</button>
+            a person from Korean history.
+          </p>
+          <p>
+            Whether these moments are good, embarrassing, or mixed, we never forget the feeling of experiencing something 
+            <button onclick="openQuestionModal('cloze', 20)" class="px-2 py-0.5 bg-white border border-blue-400 text-blue-700 rounded font-bold hover:bg-blue-100 mx-1">20. [D] for the first time</button>.
+            Firsts help to make us who we are.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="clozeCardsContainer"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: III. 文意選填 (含選項清單與情境文章) -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec3" class="tab-panel hidden space-y-6">
+      <!-- Options Pool Box -->
+      <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-amber-900 text-base flex items-center gap-2">
+            <i class="fa-solid fa-cubes-stacked text-amber-600"></i> 選項詞庫 (20%) (忽略大小寫)
+          </h3>
+          <span class="text-xs text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full font-bold">點題卡可進行畫筆劃記線索</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-sm">
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(A)</span> perfect <span class="text-xs text-slate-400 font-normal">完美的</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(B)</span> put; first <span class="text-xs text-slate-400 font-normal">視...為首要</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(C)</span> depressed <span class="text-xs text-slate-400 font-normal">沮喪的</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(D)</span> experience <span class="text-xs text-slate-400 font-normal">經歷/體驗</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(E)</span> yell <span class="text-xs text-slate-400 font-normal">大吼大叫</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(F)</span> let; down <span class="text-xs text-slate-400 font-normal">使...失望</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(G)</span> laugh <span class="text-xs text-slate-400 font-normal">大笑/笑聲</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(H)</span> realize <span class="text-xs text-slate-400 font-normal">明白/領悟</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(I)</span> remind <span class="text-xs text-slate-400 font-normal">提醒</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs font-bold text-slate-800"><span class="text-amber-700 mr-1">(J)</span> embarrassment <span class="text-xs text-slate-400 font-normal">難堪/尷尬</span></div>
+        </div>
+      </div>
+
+      <!-- Passage with inline clickable buttons -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+        <h3 class="font-bold text-slate-800 text-lg mb-3">篇章導讀：高中第一天的火警意外</h3>
+        <div class="prose max-w-none text-base leading-relaxed text-slate-700 space-y-4">
+          <p>
+            On my first day of high school, I was so excited. I was hoping for a(n) 
+            <button onclick="openQuestionModal('fillin', 21)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">21. [A] perfect</button>
+            start to this new stage of my life. However, the day turned out to be an awful 
+            <button onclick="openQuestionModal('fillin', 22)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">22. [D] experience</button>.
+            While running to class, I slipped on the wet floor. To avoid falling, I grabbed the first thing that came to hand. This, much to my 
+            <button onclick="openQuestionModal('fillin', 23)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">23. [J] embarrassment</button>,
+            happened to be the handle of a fire alarm on the wall.
+          </p>
+          <p>
+            The loud ringing forced everyone to leave their classrooms. I felt extremely awkward and 
+            <button onclick="openQuestionModal('fillin', 24)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">24. [C] depressed</button>.
+            I was worried that I might be punished and thus 
+            <button onclick="openQuestionModal('fillin', 25)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">25. [F] let</button>
+            my parents <span class="font-bold text-amber-800">25. [down]</span>.
+          </p>
+          <p>
+            Soon, I was told that the principal wanted to see me. I was terrified that he would 
+            <button onclick="openQuestionModal('fillin', 26)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">26. [E] yell</button>
+            at me in his office. To my surprise, he told me that I didn't have to worry and should always 
+            <button onclick="openQuestionModal('fillin', 27)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">27. [B] put</button>
+            safety <span class="font-bold text-amber-800">27. [first]</span>.
+            He even joked that this little mistake broke the ice and gave everyone a good 
+            <button onclick="openQuestionModal('fillin', 28)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">28. [G] laugh</button>
+            to start the term.
+          </p>
+          <p>
+            This made me 
+            <button onclick="openQuestionModal('fillin', 29)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">29. [H] realize</button>
+            something valuable: Things are not always as bad as they seem. Now, every time I face a difficult situation, I 
+            <button onclick="openQuestionModal('fillin', 30)" class="px-2 py-0.5 bg-amber-50 border border-amber-400 text-amber-800 rounded font-bold hover:bg-amber-100 mx-1">30. [I] remind</button>
+            myself to stay calm. Most importantly, I tell myself not to worry unnecessarily and never to think too negatively.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fillinCardsContainer"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: IV. 閱讀測驗 (COVID-19 遠距教學優缺點) -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec4" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Article text with annotations -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+          <div class="flex items-center justify-between border-b pb-3">
+            <h3 class="font-bold text-purple-900 text-lg flex items-center gap-2">
+              <i class="fa-solid fa-laptop-code text-purple-600"></i> 篇章文章閱讀 (Remote Learning)
+            </h3>
+            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded font-bold">9% 配分</span>
+          </div>
+          <div class="text-base leading-relaxed text-slate-700 space-y-3">
+            <p>
+              During the COVID-19 pandemic*, <span class="bg-yellow-100 px-1 rounded">remote learning became a new way of receiving education</span>. Since then, it has changed many people's learning experiences. In fact, <span class="font-bold text-purple-900">remote learning comes with both benefits and challenges</span>. (第31題主旨段落)
+            </p>
+            <p>
+              Remote learning brings people some noticeable benefits. A major advantage lies in its <span class="font-bold text-emerald-700 underline">flexibility* and comfort</span>. Imagine this: A student gets up in the morning, enjoys a relaxing breakfast, and prepares for a day of learning right in his or her own home. There is no need to rush to school or follow the dress code. <span class="bg-emerald-100 px-1 rounded font-medium">This allows students to learn in an environment that they find the most comfortable.</span> (第32題答案句) Having a learning space that is just right for students makes the learning better. Also, having family members help with learning can create a team-like and fun environment, making the learning even better.
+            </p>
+            <p>
+              On the other hand, remote learning presents certain challenges. Technical problems can interrupt learning, even though teachers are available to help. Also, looking at screens for too long can cause discomfort and tired eyes. Therefore, students should take regular breaks and do some quick physical* activities to stay focused and energetic. Another challenge includes reduced face-to-face social interaction*, which is very important for learning how to talk to others and understand their feelings. Balancing screen time with real-life activities is very important for a person's overall happiness and health.
+            </p>
+            <p>
+              In conclusion, while remote learning offers notable advantages in terms of flexibility and comfort, it also presents challenges that require careful consideration. <span class="bg-purple-100 text-purple-900 font-bold px-1 rounded">With a positive attitude and active steps, students can handle these challenges and make the most of this special educational opportunity.</span> (第33題答案句: 積極正向態度)
+            </p>
+            <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border">
+              註：COVID-19 pandemic 新冠肺炎大流行；remote learning 遠距學習；flexibility 靈活性；physical 身體的；interaction 互動
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 3 Questions -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- 31 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs cursor-pointer hover:border-purple-300 transition" onclick="openQuestionModal('reading', 31)">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-slate-800 text-base">31. 篇章最佳主旨標題</span>
+              <span class="bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-xs">詳解彈窗</span>
+            </div>
+            <div class="text-sm text-slate-600 mb-3">What is the best title for this passage?</div>
+            <div class="space-y-1 text-sm">
+              <div class="p-1.5 rounded text-slate-600">(A) A Brief History of Remote Learning</div>
+              <div class="p-1.5 rounded text-slate-600">(B) Future Development of Remote Learning</div>
+              <div class="p-1.5 rounded text-slate-600">(C) Why Remote Learning Has Become Popular</div>
+              <div class="p-1.5 rounded bg-purple-100 text-purple-900 font-bold border border-purple-200">(D) The Pros and Cons of Remote Learning (正反利弊)</div>
+            </div>
+          </div>
+
+          <!-- 32 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs cursor-pointer hover:border-purple-300 transition" onclick="openQuestionModal('reading', 32)">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-slate-800 text-base">32. 遠距學習的正向優勢</span>
+              <span class="bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-xs">詳解彈窗</span>
+            </div>
+            <div class="text-sm text-slate-600 mb-3">According to the passage, what is a positive aspect of remote learning?</div>
+            <div class="space-y-1 text-sm">
+              <div class="p-1.5 rounded bg-purple-100 text-purple-900 font-bold border border-purple-200">(A) It provides a flexible and comfortable learning environment.</div>
+              <div class="p-1.5 rounded text-slate-600">(B) It allows students to look at the screen for as long as they want.</div>
+              <div class="p-1.5 rounded text-slate-600">(C) It enables students to see their friends and classmates in person.</div>
+              <div class="p-1.5 rounded text-slate-600">(D) It helps students develop their physical fitness through regular breaks.</div>
+            </div>
+          </div>
+
+          <!-- 33 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs cursor-pointer hover:border-purple-300 transition" onclick="openQuestionModal('reading', 33)">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-slate-800 text-base">33. 結尾句作者態度評判</span>
+              <span class="bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-xs">詳解彈窗</span>
+            </div>
+            <div class="text-sm text-slate-600 mb-3">Judging from the final sentence of the passage, what is the author's attitude toward remote learning?</div>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div class="p-2 rounded border border-slate-200 text-slate-600">(A) Critical 批判的</div>
+              <div class="p-2 rounded border border-slate-200 text-slate-600">(B) Uncertain 不確定的</div>
+              <div class="p-2 rounded bg-purple-100 text-purple-900 font-bold border border-purple-300">(C) Optimistic 樂觀的</div>
+              <div class="p-2 rounded border border-slate-200 text-slate-600">(D) Worried 擔憂的</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: V. 混合題 (AI教練建議 vs. Claire 的草稿) -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec5" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">V. 混合題：說故事比賽 AI 機器人建議與草稿分析 (11%)</h2>
+            <p class="text-xs sm:text-sm text-slate-500">透過左側 AI 7大建議 (A~G) 與右側 Claire 草稿比對，指導學生找出線索。</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openQuestionModal('mixed', 34)" class="px-3 py-1.5 bg-pink-50 border border-pink-200 text-pink-700 rounded-xl text-xs font-bold hover:bg-pink-100">
+              第34題 (填空)
+            </button>
+            <button onclick="openQuestionModal('mixed', 35)" class="px-3 py-1.5 bg-pink-50 border border-pink-200 text-pink-700 rounded-xl text-xs font-bold hover:bg-pink-100">
+              第35題 (多選)
+            </button>
+            <button onclick="openQuestionModal('mixed', 36)" class="px-3 py-1.5 bg-pink-50 border border-pink-200 text-pink-700 rounded-xl text-xs font-bold hover:bg-pink-100">
+              第36題 (指涉)
+            </button>
+          </div>
+        </div>
+
+        <!-- 2 Column Comparison Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: AI Chatbot Tips -->
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center gap-2 text-indigo-900 font-bold text-base">
+              <i class="fa-solid fa-robot text-indigo-600"></i> AI Chatbot Suggestions (A ~ G)
+            </div>
+            <div class="space-y-2 text-sm text-slate-700">
+              <div class="p-2.5 bg-white rounded-xl border border-red-200 shadow-xs flex items-start gap-2">
+                <span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-xs">(A)</span>
+                <div>Start by introducing the setting, including <strong>where and when</strong> the experience happened. <span class="text-xs text-rose-600 font-bold">❌ Claire未交代人事物具體時空</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-red-200 shadow-xs flex items-start gap-2">
+                <span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-xs">(B)</span>
+                <div>Express what you thought and <strong>how you felt before</strong> the experience happened. <span class="text-xs text-rose-600 font-bold">❌ 草稿未描述事前內心想法與期待</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2">
+                <span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-xs">(C)</span>
+                <div>Talk about the most important parts, problems, or the <strong>lesson learned</strong>. <span class="text-xs text-emerald-600 font-bold">✔ 有提及 mistake 與學到的教訓</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2">
+                <span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-xs">(D)</span>
+                <div>Describe what you saw, heard, or <strong>how you felt</strong>. <span class="text-xs text-emerald-600 font-bold">✔ 提及 felt embarrassed, felt depressed</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2">
+                <span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-xs">(E)</span>
+                <div>Share your emotions and how they changed. <span class="text-xs text-emerald-600 font-bold">✔ 從沮喪轉變為積極備課</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-red-200 shadow-xs flex items-start gap-2">
+                <span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-xs">(F)</span>
+                <div>Include <strong>details of conversations</strong> that you had at the time. <span class="text-xs text-rose-600 font-bold">❌ 草稿中完全沒有任何對話引句</span></div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2">
+                <span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-xs">(G)</span>
+                <div>End by explaining how the experience changed your values. <span class="text-xs text-emerald-600 font-bold">✔ 結尾誓言 put my team first</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Claire's Draft -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <i class="fa-solid fa-feather-pointed text-amber-600"></i> Claire's First Draft (學生草稿)
+              </span>
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">Paragraph 1 & 2</span>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl text-base leading-relaxed text-slate-700 space-y-3 border border-slate-200">
+              <p>
+                I was chosen as the speaker for my team to <span class="focus-marker font-bold text-pink-900">present our work</span> to the class. Because I didn't attend several group meetings, it turned out to be the first-ever <span class="bg-pink-200 text-pink-900 font-black px-1.5 py-0.5 rounded">failure</span> of my life so far. I failed and felt embarrassed in front of my classmates and teacher. My group received a very low grade.
+              </p>
+              <p>
+                I felt depressed about letting my teammates down. I'd never felt so terrible about myself before. However, later, I learned from my mistake. These days, the memory reminds me to always <span class="focus-marker font-bold text-indigo-900">prepare well</span> and make sure I put my team first!
+              </p>
+            </div>
+
+            <!-- Summary of 3 questions inline -->
+            <div class="space-y-2 pt-2">
+              <div class="p-3 bg-pink-50/50 rounded-xl border border-pink-200 text-sm">
+                <span class="font-bold text-pink-900">34. 詞類變化答案：</span>
+                <span class="text-slate-700">present (動詞) &rarr; group <strong>(1) presentation</strong>；prepare (動詞) &rarr; careful <strong>(2) preparation</strong></span>
+              </div>
+              <div class="p-3 bg-pink-50/50 rounded-xl border border-pink-200 text-sm">
+                <span class="font-bold text-pink-900">35. 多選題 (未遵循的建議)：</span>
+                <span class="font-bold text-red-600 text-base ml-1">A, B, F</span>
+              </div>
+              <div class="p-3 bg-pink-50/50 rounded-xl border border-pink-200 text-sm">
+                <span class="font-bold text-pink-900">36. 第一段所指涉單詞：</span>
+                <span class="font-bold text-emerald-700 text-base ml-1">failure</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: VI. 翻譯題專屬分頁 -->
+    <!-- ========================================================================= -->
+    <div id="panel-sec6" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">VI. 翻譯試題逐題剖析 (總分20%)</h2>
+          <p class="text-xs sm:text-sm text-slate-500">點擊個別題目彈出投影黑板與高對比色塊分段給分說明。</p>
+        </div>
+      </div>
+
+      <div class="space-y-4" id="transFullListContainer">
+        <!-- 37, 38, 39 populated by JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- POPUP MODAL (點擊題目後跳出的特大投影視窗與劃記畫布) -->
+  <!-- ========================================================================= -->
+  <div id="questionModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header & Annotation Toolbar -->
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <span id="modalCategoryBadge" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-500 text-white tracking-wider">
+            I. 文意字彙
+          </span>
+          <span id="modalQuestionNum" class="text-lg font-bold text-slate-200">
+            Question #1
+          </span>
+        </div>
+
+        <!-- Annotation Tools for Teachers -->
+        <div class="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <span class="text-xs text-slate-400 font-bold px-2 hidden sm:inline"><i class="fa-solid fa-highlighter"></i> 劃記筆:</span>
+          
+          <button onclick="setDrawTool('marker-yellow')" id="btn-marker-yellow" class="draw-tool-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 hover:opacity-90 transition">
+            螢光黃
+          </button>
+          <button onclick="setDrawTool('marker-pink')" id="btn-marker-pink" class="draw-tool-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-pink-400 text-slate-950 hover:opacity-90 transition">
+            螢光粉
+          </button>
+          <button onclick="setDrawTool('pen-red')" id="btn-pen-red" class="draw-tool-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500 text-white hover:opacity-90 transition">
+            紅筆
+          </button>
+          <button onclick="clearCanvas()" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition" title="清除畫記">
+            <i class="fa-solid fa-eraser"></i> 清除
+          </button>
+        </div>
+
+        <!-- Close modal button -->
+        <button onclick="closeQuestionModal()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Contains Canvas & Large Text) -->
+      <div id="modalContentWrapper" class="relative flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 bg-slate-50">
+        
+        <!-- Canvas for drawing/marking -->
+        <canvas id="annotationCanvas" class="annotation-canvas"></canvas>
+
+        <!-- Large Question Prompt Card -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs relative z-10">
+          <div class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2">Original Question (題目原文)</div>
+          <div id="modalQuestionText" class="text-xl sm:text-2xl font-medium text-slate-900 leading-relaxed font-sans">
+            題目內容載入中...
+          </div>
+          <!-- Options box if applicable -->
+          <div id="modalOptionsBox" class="mt-4 pt-4 border-t border-slate-100 hidden">
+            <!-- Injected options -->
+          </div>
+        </div>
+
+        <!-- Answer & Explanation Reveal Toggle -->
+        <div class="space-y-4 relative z-10">
+          <div class="flex items-center justify-between">
+            <button onclick="toggleModalExplanation()" id="modalToggleExplBtn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-key"></i>
+              <span id="modalToggleExplText">顯示詳解與答案</span>
+            </button>
+            <span class="text-xs text-slate-400">可自由開關，方便課堂點名讓學生先回答</span>
+          </div>
+
+          <!-- Explanation Content Box (Hidden by default) -->
+          <div id="modalExplanationCard" class="hidden bg-white rounded-2xl p-6 border-2 border-indigo-200 shadow-sm space-y-4">
+            <!-- Answer badge -->
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold text-slate-500 uppercase">標準答案:</span>
+              <span id="modalAnswerBadge" class="text-xl font-black text-indigo-700 font-mono-code bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-200">
+                A
+              </span>
+            </div>
+
+            <!-- Colorful Analysis Section -->
+            <div class="border-t border-slate-100 pt-3">
+              <div class="text-xs font-bold text-indigo-900 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> 彩色核心考點解析：
+              </div>
+              <div id="modalExplanationBody" class="text-base sm:text-lg text-slate-800 leading-relaxed space-y-2">
+                詳解載入中...
+              </div>
+            </div>
+
+            <!-- Grammar / Vocabulary Tips -->
+            <div id="modalGrammarNotes" class="bg-amber-50/80 border border-amber-200 p-3.5 rounded-xl text-xs sm:text-sm text-amber-900">
+              文法補充載入中...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between relative z-10">
+        <div class="flex items-center gap-2">
+          <button onclick="navigateModalQuestion(-1)" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            <i class="fa-solid fa-chevron-left"></i> 上一題
+          </button>
+          <button onclick="navigateModalQuestion(1)" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            下一題 <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        <button onclick="closeQuestionModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
+          關閉視窗 (Esc)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JavaScript Application State and Data Model -->
+  <script>
+    // Complete structured exam dataset from PDF and Teacher's Manual
+    const examData = {
+      vocab: [
+        {
+          id: 1,
+          q: "Peter didn't r____y when I asked him whether he wanted another cup of coffee.",
+          answer: "reply",
+          type: "文意字彙",
+          explanation: "根據句意：當我詢問彼得是否要再來一杯咖啡時，他沒有<span class='text-emerald-700 font-bold'>「回答 (reply)」</span>。didn't 後接原形動詞。",
+          grammar: "<strong>reply to + sb/sth</strong> 表示回應某人/某事；此處省略介係詞受詞直接作不及物動詞使用。"
+        },
+        {
+          id: 2,
+          q: "Miss Lin s____ped the details of the passage and talked only about the main idea.",
+          answer: "skipped",
+          type: "文意字彙",
+          explanation: "根據句意：林老師<span class='text-emerald-700 font-bold'>「跳過 (skipped)」</span>文章的細節，只談論大意。由 and talked 判斷時態為過去式，skip 需重複字尾 p + ed。",
+          grammar: "<strong>skip</strong> (v.) 跳過、略過。過去式與過去分詞為 skipped。"
+        },
+        {
+          id: 3,
+          q: "The study shows that a falling rock caused the a____t on the mountain road.",
+          answer: "accident",
+          type: "文意字彙",
+          explanation: "根據句意：研究顯示一顆落石引起了山路上的<span class='text-emerald-700 font-bold'>「意外事故 (accident)」</span>。冠詞 the + a 開頭的名詞。",
+          grammar: "<strong>cause an accident</strong> 釀成意外；<strong>by accident</strong> 偶然地。"
+        },
+        {
+          id: 4,
+          q: "Although she was u____t that she didn't win the science competition, Diana picked herself up and decided simply to work harder on her next project.",
+          answer: "upset",
+          type: "文意字彙",
+          explanation: "根據句意：雖然沒在科學競賽得獎讓戴安娜感到<span class='text-emerald-700 font-bold'>「心煩沮喪的 (upset)」</span>，但她振作精神決定在下次專題更加努力。",
+          grammar: "<strong>upset</strong> (adj.) 沮喪的、心煩的；(v.) 使心煩 (upset-upset-upset)。"
+        },
+        {
+          id: 5,
+          q: "During the harvest festival, people of this tribe wore t____l costumes, danced to their tribal music, and enjoyed local foods.",
+          answer: "traditional",
+          type: "文意字彙",
+          explanation: "根據句意：在豐年祭期間，該部落族人身穿<span class='text-emerald-700 font-bold'>「傳統的 (traditional)」</span>服飾，配合部落音樂跳舞。修飾名詞 costumes 需用形容詞。",
+          grammar: "<strong>tradition</strong> (n.) 傳統 &rarr; <strong>traditional</strong> (adj.) 傳統的。"
+        },
+        {
+          id: 6,
+          q: "Alex's manager asked him to spend some time r____ting on how he could improve his performance.",
+          answer: "reflecting",
+          type: "詞類變化",
+          explanation: "根據句型：spend + 時間 + V-ing。經理要 Alex 花些時間<span class='text-emerald-700 font-bold'>「反思、反省 (reflecting)」</span>該如何提升工作表現。",
+          grammar: "<strong>reflect on sth</strong> 反思...；<strong>reflection</strong> (n.) 倒影、沉思。"
+        },
+        {
+          id: 7,
+          q: "Linda really looked forward to the outdoor party, so she felt very disappointed when a sudden, heavy rainstorm r____ned it.",
+          answer: "ruined",
+          type: "文意字彙",
+          explanation: "根據句意：突如其來的強烈暴風雨<span class='text-emerald-700 font-bold'>「毀掉了 (ruined)」</span>戶外派對。由 felt very disappointed 可知發生在過去，使用過去式 ruined。",
+          grammar: "<strong>ruin</strong> (v.) 毀壞、破壞 (= spoil, destroy)；(n.) 廢墟、毀滅。"
+        },
+        {
+          id: 8,
+          q: "The Lin family was ____ (fortunately) to have survived the five-car pile-up on the highway.",
+          answer: "fortunate",
+          type: "詞類變化",
+          explanation: "題目給予副詞 fortunately，空格位於 be 動詞 was 之後，後面接不定詞 to have survived，故需填入形容詞 <span class='text-emerald-700 font-bold'>fortunate</span> (幸運的)。",
+          grammar: "<strong>be fortunate to V</strong> 很幸運能...；<strong>fortune</strong> (n.) 財富、好運。"
+        },
+        {
+          id: 9,
+          q: "Zoe managed to ____ (memory) the whole article within an hour.",
+          answer: "memorize",
+          type: "詞類變化",
+          explanation: "題目給名詞 memory (記憶)，片語 manage to 後面必須接原形動詞，故轉為動詞 <span class='text-emerald-700 font-bold'>memorize</span> (背誦、記住)。",
+          grammar: "<strong>manage to + V</strong> 設法成功達成；<strong>memorize</strong> (v.) 熟記。"
+        },
+        {
+          id: 10,
+          q: "Amy has suffered from ____ (depress) since her parents passed away.",
+          answer: "depression",
+          type: "詞類變化",
+          explanation: "題目給動詞 depress (使沮喪)，介係詞 from 後方需要接受詞 (名詞)，故填入名詞 <span class='text-emerald-700 font-bold'>depression</span> (憂鬱症/沮喪)。",
+          grammar: "<strong>suffer from depression</strong> 飽受憂鬱症之苦；<strong>depressed</strong> (adj.) 感到沮喪的。"
+        }
+      ],
+      cloze: [
+        {
+          id: 11,
+          q: "These (11) events bring up various feelings in us.",
+          options: ["(A) foreign", "(B) nervous", "(C) memorable", "(D) perfect"],
+          answer: "(C)",
+          explanation: "這些人生初體驗都是<span class='text-blue-700 font-bold'>「值得紀念的、難忘的 (memorable)」</span>事件，會在心中激起各種感受。",
+          grammar: "<strong>memorable</strong> (adj.) 難忘的；由 memory 衍生而來。"
+        },
+        {
+          id: 12,
+          q: "Let's take a quick look at (12) different examples from some students' lives.",
+          options: ["(A) a few", "(B) a little", "(C) little", "(D) much"],
+          answer: "(A)",
+          explanation: "空格修飾後方可數複數名詞 examples，表示肯定意涵的「幾個」，因此選 <span class='text-blue-700 font-bold'>a few</span>。",
+          grammar: "<strong>a few + 可數名詞複數</strong>；a little / little + 不可數名詞。"
+        },
+        {
+          id: 13,
+          q: "He (13) some interesting experiences, such as using online tools and taking classes in his pajamas.",
+          options: ["(A) visited", "(B) recalled", "(C) reminded", "(D) prepared"],
+          answer: "(B)",
+          explanation: "Robbie <span class='text-blue-700 font-bold'>「回想、回憶 (recalled)」</span>一些有趣的經歷，如穿著睡衣上課。",
+          grammar: "<strong>recall</strong> (v.) 回想、回憶；<strong>remind sb of sth</strong> 提醒某人某事。"
+        },
+        {
+          id: 14,
+          q: "However, afterward, Robbie felt (14) online lessons weren't for him.",
+          options: ["(A) that", "(B) which", "(C) what", "(D) when"],
+          answer: "(A)",
+          explanation: "動詞 felt 後面接完整的名詞子句當受詞 (online lessons weren't for him)，需用連接詞 <span class='text-blue-700 font-bold'>that</span> 引導。",
+          grammar: "<strong>that</strong> 在名詞子句中僅作為連接詞，不具任何代名詞或副詞功能，可省略。"
+        },
+        {
+          id: 15,
+          q: "Being able to see and talk to his classmates (15) was too important to him.",
+          options: ["(A) in time", "(B) in secret", "(C) in person", "(D) in short"],
+          answer: "(C)",
+          explanation: "與線上課程相對，能夠<span class='text-blue-700 font-bold'>「親自、當面 (in person)」</span>看見並與同學交談對他太重要了。",
+          grammar: "<strong>in person</strong> 親自；in time 及時；in secret 秘密地；in short 簡而言之。"
+        },
+        {
+          id: 16,
+          q: "Claire also shared a school first, but her story is about a first (16).",
+          options: ["(A) treat", "(B) interview", "(C) reflection", "(D) failure"],
+          answer: "(D)",
+          explanation: "根據後文 Claire 報告失敗、使組員失望，可知這是一個關於人生的第一次<span class='text-blue-700 font-bold'>「失敗 (failure)」</span>的故事。",
+          grammar: "<strong>failure</strong> (n.) 失敗 &harr; <strong>success</strong> (n.) 成功。"
+        },
+        {
+          id: 17,
+          q: "(17) she was so unprepared, she did a very poor job of speaking...",
+          options: ["(A) Although", "(B) Once", "(C) Since", "(D) Unless"],
+          answer: "(C)",
+          explanation: "<span class='text-blue-700 font-bold'>「因為、既然 (Since)」</span>她毫無準備，所以發言表現很糟，在全班面前出醜。",
+          grammar: "<strong>Since</strong> 作副詞連接詞表「因為、由於」(= Because, As)。"
+        },
+        {
+          id: 18,
+          q: "...and she (18) school more (18) now.",
+          options: ["(A) lets; down", "(B) takes; seriously", "(C) dresses; up", "(D) puts; first"],
+          answer: "(B)",
+          explanation: "經過這次慘痛教訓，Claire 現在更<span class='text-blue-700 font-bold'>「認真對待 (takes seriously)」</span>課業。",
+          grammar: "<strong>take sth seriously</strong> 認真嚴肅對待某事。"
+        },
+        {
+          id: 19,
+          q: "She even wore some historical Korean clothing so that she (19) a person from Korean history.",
+          options: ["(A) looked like", "(B) looked", "(C) looked as", "(D) looked at"],
+          answer: "(A)",
+          explanation: "後方接名詞 a person，故連綴動詞 look 後方需加 like：<span class='text-blue-700 font-bold'>looked like</span>。",
+          grammar: "<strong>look like + 名詞</strong> 看起來像...；<strong>look + 形容詞</strong>。"
+        },
+        {
+          id: 20,
+          q: "...we never forget the feeling of experiencing something (20).",
+          options: ["(A) at the same time", "(B) in the beginning", "(C) in the end", "(D) for the first time"],
+          answer: "(D)",
+          explanation: "貫徹本課主題 Firsts in Life，我們絕不會忘記某件事<span class='text-blue-700 font-bold'>「第一次 (for the first time)」</span>體驗時的感覺。",
+          grammar: "<strong>for the first time</strong> 第一次；at the same time 同時。"
+        }
+      ],
+      fillin: [
+        {
+          id: 21,
+          q: "I was hoping for a(n) (21) start to this new stage of my life.",
+          answer: "(A) perfect",
+          explanation: "上高中第一天滿懷期待，希望新階段能有一個<span class='text-amber-800 font-bold'>「完美的 (perfect)」</span>開始。修飾名詞 start 用形容詞。",
+          grammar: "<strong>perfect start</strong> 完美的起頭。"
+        },
+        {
+          id: 22,
+          q: "However, the day turned out to be an awful (22).",
+          answer: "(D) experience",
+          explanation: "However 轉折，由後文滑倒誤拉警報可知這一天變成了可怕的<span class='text-amber-800 font-bold'>「經歷 (experience)」</span>。",
+          grammar: "<strong>awful experience</strong> 糟糕難堪的體驗。"
+        },
+        {
+          id: 23,
+          q: "This, much to my (23), happened to be the handle of a fire alarm on the wall.",
+          answer: "(J) embarrassment",
+          explanation: "慣用句型：<strong>much to one's embarrassment</strong>，表示「令某人深感<span class='text-amber-800 font-bold'>尷尬難堪的是</span>」。",
+          grammar: "<strong>to one's + 情緒名詞</strong>：to one's surprise / delight / embarrassment。"
+        },
+        {
+          id: 24,
+          q: "I felt extremely awkward and (24).",
+          answer: "(C) depressed",
+          explanation: "連綴動詞 felt 後接形容詞與 awkward (尷尬的) 對等，表示心情感到極度<span class='text-amber-800 font-bold'>「沮喪低落的 (depressed)」</span>。",
+          grammar: "<strong>depressed</strong> 人感到沮喪；depressing 事情令人沮喪。"
+        },
+        {
+          id: 25,
+          q: "I was worried that I might be punished and thus (25) my parents (25).",
+          answer: "(F) let ... down",
+          explanation: "擔心自己會受罰進而使父母<span class='text-amber-800 font-bold'>「失望 (let down)」</span>。片語：<strong>let sb down</strong>。",
+          grammar: "<strong>let down</strong> 辜負、讓...失望。"
+        },
+        {
+          id: 26,
+          q: "I was terrified that he would (26) at me in his office.",
+          answer: "(E) yell",
+          explanation: "被叫去校長室，我很害怕校長會對我<span class='text-amber-800 font-bold'>「大吼咆哮 (yell)」</span>。助動詞 would 後接原形動詞。",
+          grammar: "<strong>yell at sb</strong> 對某人大吼。"
+        },
+        {
+          id: 27,
+          q: "To my surprise, he told me that I didn't have to worry and should always (27) safety (27).",
+          answer: "(B) put ... first",
+          explanation: "校長安慰說人沒事就好，要永遠把安全<span class='text-amber-800 font-bold'>「放在第一位 (put safety first)」</span>。",
+          grammar: "<strong>put A first</strong> 把A視為首要。"
+        },
+        {
+          id: 28,
+          q: "He even joked that this little mistake broke the ice and gave everyone a good (28) to start the term.",
+          answer: "(G) laugh",
+          explanation: "校長幽默化解，開玩笑說這個小失誤幫大家破冰，並帶來了一場痛快的<span class='text-amber-800 font-bold'>「歡笑 (laugh)」</span>。不定冠詞 a 後接可數名詞。",
+          grammar: "<strong>have/give a good laugh</strong> 痛快大笑一場。"
+        },
+        {
+          id: 29,
+          q: "This made me (29) something valuable: Things are not always as bad as they seem.",
+          answer: "(H) realize",
+          explanation: "使役動詞 made + 受詞 me + 原形動詞 <span class='text-amber-800 font-bold'>realize</span> (明白、意識到)。",
+          grammar: "<strong>make sb realize</strong> 使某人領悟。"
+        },
+        {
+          id: 30,
+          q: "Now, every time I face a difficult situation, I (30) myself to stay calm.",
+          answer: "(I) remind",
+          explanation: "現在每次面臨困境，我都會<span class='text-amber-800 font-bold'>「提醒 (remind)」</span>自己保持冷靜。主詞 I 接現在式原形動詞。",
+          grammar: "<strong>remind oneself to V</strong> 提醒自己去作某事。"
+        }
+      ],
+      reading: [
+        {
+          id: 31,
+          q: "What is the best title for this passage?",
+          options: [
+            "(A) A Brief History of Remote Learning",
+            "(B) Future Development of Remote Learning",
+            "(C) Why Remote Learning Has Become Popular",
+            "(D) The Pros and Cons of Remote Learning"
+          ],
+          answer: "(D)",
+          explanation: "文章第一段點出 remote learning comes with both <strong>benefits and challenges</strong>，第二段講彈性舒適等好處(Pros)，第三段講缺乏社交、視力疲勞等挑戰(Cons)，因此最佳標題為<span class='text-purple-700 font-bold'>利與弊 (The Pros and Cons)</span>。",
+          grammar: "<strong>Pros and Cons</strong> 贊成與反對、利與弊。"
+        },
+        {
+          id: 32,
+          q: "According to the passage, what is a positive aspect of remote learning?",
+          options: [
+            "(A) It provides a flexible and comfortable learning environment.",
+            "(B) It allows students to look at the screen for as long as they want.",
+            "(C) It enables students to see their friends and classmates in person.",
+            "(D) It helps students develop their physical fitness through regular breaks."
+          ],
+          answer: "(A)",
+          explanation: "對應第二段第二句：A major advantage lies in its <strong>flexibility and comfort</strong>. 與選項 (A) 完全相符。",
+          grammar: "<strong>flexibility</strong> (n.) 彈性；<strong>comfortable</strong> (adj.) 舒適的。"
+        },
+        {
+          id: 33,
+          q: "Judging from the final sentence of the passage, what is the author's attitude toward remote learning?",
+          options: [
+            "(A) Critical. (批判的)",
+            "(B) Uncertain. (不確定的)",
+            "(C) Optimistic. (樂觀的)",
+            "(D) Worried. (擔憂的)"
+          ],
+          answer: "(C)",
+          explanation: "最後一句提到：With a positive attitude and active steps, students can handle these challenges and make the most of this special educational opportunity.（以積極態度掌握機會），顯示作者抱持<span class='text-purple-700 font-bold'>「樂觀 (Optimistic)」</span>態度。",
+          grammar: "<strong>Optimistic</strong> (adj.) 樂觀的；<strong>Pessimistic</strong> (adj.) 悲觀的。"
+        }
+      ],
+      mixed: [
+        {
+          id: 34,
+          q: "請從 Claire 的草稿中找出最適當的單詞(word)填入下列句子空格中，並視句型結構需要做適當的字形變化：\nClaire gave a poor group (1) ______ in class and disappointed her teammates. From this experience, she understood that she had to take group work seriously and do careful (2) ______ before taking part in any activity.",
+          answer: "(1) presentation ; (2) preparation",
+          explanation: "草稿第一段出現 <em>present our work</em>，此處名詞片語 group 後接名詞，故將動詞 present 改為 <span class='text-pink-700 font-bold'>presentation</span>。<br>草稿第二段出現 <em>always prepare well</em>，此處在形容詞 careful 之後需要名詞，故將動詞 prepare 改為名詞 <span class='text-pink-700 font-bold'>preparation</span>。",
+          grammar: "<strong>present</strong> (v.) 展現、發表 &rarr; <strong>presentation</strong> (n.) 口頭簡報；<strong>prepare</strong> (v.) 準備 &rarr; <strong>preparation</strong> (n.) 準備工作。"
+        },
+        {
+          id: 35,
+          q: "From (A) to (G) in the above chatbot's suggestions, which ONES does Claire NOT follow in her story? (多選題)",
+          answer: "(A), (B), (F)",
+          explanation: "逐項檢視 AI 建議：<br>" +
+            "<span class='text-rose-600 font-bold'>[A] 未採納：</span>草稿並未在開頭交待明確的時間與地點背景。<br>" +
+            "<span class='text-rose-600 font-bold'>[B] 未採納：</span>草稿並未提及事情發生前的內心想法與期待。<br>" +
+            "<span class='text-rose-600 font-bold'>[F] 未採納：</span>草稿全文完全沒有引用當下的對話細節。<br>" +
+            "其餘 C (學到教訓)、D (描述感受)、E (情緒轉變)、G (價值觀改變) 在草稿中均有呈現。",
+          grammar: "統整歸納題：比對文本與項目 checklist。"
+        },
+        {
+          id: 36,
+          q: "What does the 'something or someone' in the chatbot's response refer to in Claire's story? Please find the answer in the first paragraph of Claire's draft.",
+          answer: "failure",
+          explanation: "Chatbot 提到 a first-time experience with <em>something or someone</em>。檢視 Claire 草稿第一段第二句：<em>it turned out to be the first-ever <strong>failure</strong> of my life so far.</em> 故該事物指的就是「失敗 (<strong>failure</strong>)」。",
+          grammar: "文本指涉 (Referencing)：找尋關鍵字 first-ever。"
+        }
+      ],
+      trans: [
+        {
+          id: 37,
+          q: "那家餐廳的牛排吃起來像鞋子的皮革。(5%)",
+          segments: [
+            { text: "The steak in that restaurant", score: "2%", color: "border-sky-500 bg-sky-100 text-sky-900" },
+            { text: "tastes like", score: "2%", color: "border-pink-500 bg-pink-100 text-pink-900" },
+            { text: "shoe leather.", score: "1%", color: "border-emerald-500 bg-emerald-100 text-emerald-900" }
+          ],
+          answer: "The steak in that restaurant (2%) // tastes like (2%) // shoe leather. (1%)",
+          explanation: "【分段評分標準】每一段錯1字扣1分直到該段扣完為止。<br>" +
+            "1. <span class='text-sky-700 font-bold'>The steak in that restaurant (2%)</span>：主詞 steak 由介系詞片語 in that restaurant 修飾。<br>" +
+            "2. <span class='text-pink-700 font-bold'>tastes like (2%)</span>：主詞為單數不可數名詞，taste 加 s；後接名詞 leather 需加介係詞 like。<br>" +
+            "3. <span class='text-emerald-700 font-bold'>shoe leather (1%)</span>：不可數名詞，注意單字拼法。"
+        },
+        {
+          id: 38,
+          q: "Leo 不知道他女朋友昨天蹺課了。(7%)",
+          segments: [
+            { text: "Leo doesn't/didn't know", score: "3%", color: "border-blue-500 bg-blue-100 text-blue-900" },
+            { text: "that his girlfriend skipped class yesterday.", score: "4%", color: "border-fuchsia-500 bg-fuchsia-100 text-fuchsia-900" }
+          ],
+          answer: "Leo doesn't/didn't know (3%) // that his girlfriend skipped class yesterday. (4%)",
+          explanation: "【分段評分標準】每一段錯1字扣1分直到該段扣完為止。<br>" +
+            "1. <span class='text-blue-700 font-bold'>Leo doesn't/didn't know (3%)</span>：主要子句。敘述現階段不知可用 doesn't know；若強調昨天當下不知可用 didn't know。<br>" +
+            "2. <span class='text-fuchsia-700 font-bold'>that his girlfriend skipped class yesterday (4%)</span>：名詞子句作受詞。受昨天 (yesterday) 影響，動詞 skip 必須是過去式 skipped (重複 p 加 ed)。"
+        },
+        {
+          id: 39,
+          q: "Debbie 等不及為嘉年華(carnival)裝扮，而且她會確保她的服裝看起來色彩繽紛。(8%)",
+          segments: [
+            { text: "Debbie can't wait to", score: "2%", color: "border-indigo-500 bg-indigo-100 text-indigo-900" },
+            { text: "dress up for the carnival", score: "2%", color: "border-rose-500 bg-rose-100 text-rose-900" },
+            { text: ", and she will make sure", score: "2%", color: "border-teal-500 bg-teal-100 text-teal-900" },
+            { text: "that her costume looks colorful.", score: "2%", color: "border-amber-500 bg-amber-100 text-amber-900" }
+          ],
+          answer: "Debbie can't wait to (2%) // dress up for the carnival (2%) // , and she will make sure (2%) // that her costume looks colorful. (2%)",
+          explanation: "【分段評分標準】每一段錯1字扣1分直到該段扣完為止。<br>" +
+            "1. <span class='text-indigo-700 font-bold'>Debbie can't wait to (2%)</span>：片語 can't wait to + V。<br>" +
+            "2. <span class='text-rose-700 font-bold'>dress up for the carnival (2%)</span>：片語 dress up for + 活動。<br>" +
+            "3. <span class='text-teal-700 font-bold'>, and she will make sure (2%)</span>：對等連接詞 and + 片語 make sure (that)。<br>" +
+            "4. <span class='text-amber-700 font-bold'>that her costume looks colorful (2%)</span>：costume 單數 + 連綴動詞 looks + 形容詞 colorful。"
+        }
+      ]
+    };
+
+    // Global Font scaling state
+    let currentFontScale = 100;
+
+    function changeGlobalFontSize(delta) {
+      currentFontScale = Math.min(Math.max(currentFontScale + delta, 80), 220);
+      document.getElementById('fontScaleDisplay').innerText = `${currentFontScale}%`;
+      document.getElementById('appContentRoot').style.fontSize = `${(16 * currentFontScale) / 100}px`;
+    }
+
+    function resetGlobalFontSize() {
+      currentFontScale = 100;
+      document.getElementById('fontScaleDisplay').innerText = `100%`;
+      document.getElementById('appContentRoot').style.fontSize = `16px`;
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function switchTab(tabKey) {
+      // Hide all panels
+      document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+      // Remove active states from buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+      });
+
+      // Show selected panel
+      const targetPanel = document.getElementById(`panel-${tabKey}`);
+      if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+      }
+
+      // Highlight active button
+      const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+      }
+    }
+
+    // Render Question Cards across tabs
+    function renderSectionCards() {
+      // 1. Vocabulary
+      const vocabBox = document.getElementById('vocabQuestionsContainer');
+      vocabBox.innerHTML = examData.vocab.map(item => `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-emerald-300 transition cursor-pointer" onclick="openQuestionModal('vocab', ${item.id})">
+          <div class="flex justify-between items-start gap-2 mb-2">
+            <span class="font-bold text-slate-400 text-xs uppercase tracking-wider">題號 ${item.id} (${item.type})</span>
+            <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded">點擊投影講解</span>
+          </div>
+          <div class="font-medium text-slate-800 text-base mb-3 leading-relaxed">${item.q}</div>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-sm">
+            <span class="text-slate-400 text-xs">答案:</span>
+            <span class="font-black text-emerald-700 font-mono-code text-base">${item.answer}</span>
+          </div>
+        </div>
+      `).join('');
+
+      // 2. Cloze Cards
+      const clozeBox = document.getElementById('clozeCardsContainer');
+      clozeBox.innerHTML = examData.cloze.map(item => `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-blue-300 transition cursor-pointer" onclick="openQuestionModal('cloze', ${item.id})">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-slate-400 text-xs">第 ${item.id} 題</span>
+            <span class="font-black text-blue-700 text-lg bg-blue-50 px-2 py-0.5 rounded">${item.answer}</span>
+          </div>
+          <p class="text-sm font-medium text-slate-800 mb-3">${item.q}</p>
+          <div class="grid grid-cols-2 gap-1.5 text-xs text-slate-600">
+            ${item.options.map(opt => `<div class="${opt.startsWith(item.answer) ? 'font-bold text-blue-700 bg-blue-50 p-1 rounded' : 'p-1'}">${opt}</div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // 3. Fillin Cards
+      const fillinBox = document.getElementById('fillinCardsContainer');
+      fillinBox.innerHTML = examData.fillin.map(item => `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-amber-300 transition cursor-pointer" onclick="openQuestionModal('fillin', ${item.id})">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-slate-400 text-xs">第 ${item.id} 題</span>
+            <span class="font-black text-amber-700 text-lg bg-amber-50 px-2.5 py-0.5 rounded">${item.answer}</span>
+          </div>
+          <p class="text-sm font-medium text-slate-800 mb-2">${item.q}</p>
+          <div class="text-xs text-slate-500">點擊開啟放大鏡與畫筆教學</div>
+        </div>
+      `).join('');
+
+      // 4. Translation Full Breakdown Tab
+      const transBox = document.getElementById('transFullListContainer');
+      transBox.innerHTML = examData.trans.map(item => `
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-slate-800 text-lg">${item.id}. ${item.q}</h3>
+            <button onclick="openQuestionModal('trans', ${item.id})" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1">
+              <i class="fa-solid fa-expand"></i> 投影彈窗
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 p-4 bg-slate-50 rounded-xl font-mono-code text-base">
+            ${item.segments.map((seg, idx) => `
+              <span class="${seg.color} font-bold px-3 py-1.5 rounded-lg border-b-4 shadow-xs">
+                ${seg.text} <span class="text-xs ml-1 bg-white/70 px-1 py-0.5 rounded font-black">${seg.score}</span>
+              </span>
+              ${idx < item.segments.length - 1 ? '<span class="text-slate-400 font-bold text-lg">//</span>' : ''}
+            `).join('')}
+          </div>
+          <div class="text-sm bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-slate-700 leading-relaxed">
+            ${item.explanation}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Modal & Highlighter Canvas System
+    let currentModalCategory = null;
+    let currentModalId = null;
+    let isDrawing = false;
+    let currentDrawColor = 'rgba(250, 204, 21, 0.45)'; // default yellow marker
+    let currentDrawWidth = 18;
+    let canvas, ctx;
+
+    function initCanvas() {
+      canvas = document.getElementById('annotationCanvas');
+      ctx = canvas.getContext('2d');
+      
+      const resizeCanvas = () => {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      };
+      
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Touch and Mouse listeners
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      };
+
+      const startDraw = (e) => {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      };
+
+      const drawMove = (e) => {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = currentDrawColor;
+        ctx.lineWidth = currentDrawWidth;
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+
+      const endDraw = () => {
+        if (isDrawing) {
+          ctx.closePath();
+          isDrawing = false;
+        }
+      };
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', drawMove);
+      canvas.addEventListener('mouseup', endDraw);
+      canvas.addEventListener('mouseleave', endDraw);
+
+      canvas.addEventListener('touchstart', (e) => { startDraw(e); e.preventDefault(); }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => { drawMove(e); e.preventDefault(); }, { passive: false });
+      canvas.addEventListener('touchend', endDraw);
+    }
+
+    function setDrawTool(tool) {
+      canvas.classList.add('active-draw');
+      document.querySelectorAll('.draw-tool-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-white'));
+      
+      if (tool === 'marker-yellow') {
+        currentDrawColor = 'rgba(250, 204, 21, 0.45)'; // semi-transparent yellow highlighter
+        currentDrawWidth = 20;
+        document.getElementById('btn-marker-yellow').classList.add('ring-2', 'ring-white');
+      } else if (tool === 'marker-pink') {
+        currentDrawColor = 'rgba(244, 114, 182, 0.45)'; // pink highlighter
+        currentDrawWidth = 20;
+        document.getElementById('btn-marker-pink').classList.add('ring-2', 'ring-white');
+      } else if (tool === 'pen-red') {
+        currentDrawColor = 'rgba(225, 29, 72, 0.9)'; // sharp red pen
+        currentDrawWidth = 3.5;
+        document.getElementById('btn-pen-red').classList.add('ring-2', 'ring-white');
+      }
+    }
+
+    function clearCanvas() {
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function openQuestionModal(category, id) {
+      currentModalCategory = category;
+      currentModalId = id;
+      
+      const modal = document.getElementById('questionModal');
+      const categoryBadge = document.getElementById('modalCategoryBadge');
+      const questionNum = document.getElementById('modalQuestionNum');
+      const questionText = document.getElementById('modalQuestionText');
+      const optionsBox = document.getElementById('modalOptionsBox');
+      const answerBadge = document.getElementById('modalAnswerBadge');
+      const explanationBody = document.getElementById('modalExplanationBody');
+      const grammarNotes = document.getElementById('modalGrammarNotes');
+      const explanationCard = document.getElementById('modalExplanationCard');
+      const toggleText = document.getElementById('modalToggleExplText');
+
+      // Reset explanation visibility
+      explanationCard.classList.add('hidden');
+      toggleText.innerText = '顯示詳解與答案';
+
+      // Find item
+      const list = examData[category];
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+
+      // Set category badge
+      const catTitles = {
+        vocab: 'I. 文意字彙與詞類變化',
+        cloze: 'II. 綜合測驗',
+        fillin: 'III. 文意選填',
+        reading: 'IV. 閱讀測驗',
+        mixed: 'V. 混合題',
+        trans: 'VI. 翻譯題'
+      };
+      categoryBadge.innerText = catTitles[category] || '測驗題目';
+      questionNum.innerText = `第 ${id} 題`;
+
+      // Set Question text
+      questionText.innerHTML = item.q.replace(/\n/g, '<br>');
+
+      // Set options if cloze or reading
+      if (item.options && item.options.length > 0) {
+        optionsBox.classList.remove('hidden');
+        optionsBox.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-base">
+            ${item.options.map(opt => `
+              <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-700">
+                ${opt}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (category === 'trans') {
+        optionsBox.classList.remove('hidden');
+        optionsBox.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2 p-3 bg-indigo-50/60 rounded-xl font-mono-code text-lg">
+            ${item.segments.map((seg, idx) => `
+              <span class="${seg.color} font-bold px-3 py-1 rounded-lg border-b-4">
+                ${seg.text} <span class="text-xs ml-1 bg-white/80 px-1 py-0.5 rounded font-black">${seg.score}</span>
+              </span>
+              ${idx < item.segments.length - 1 ? '<span class="text-slate-400 font-bold">//</span>' : ''}
+            `).join('')}
+          </div>
+        `;
+      } else {
+        optionsBox.classList.add('hidden');
+      }
+
+      // Answer & Explanation
+      answerBadge.innerHTML = item.answer;
+      explanationBody.innerHTML = item.explanation;
+      if (item.grammar) {
+        grammarNotes.classList.remove('hidden');
+        grammarNotes.innerHTML = `<div class="font-bold text-amber-900 mb-0.5">重點文法與字彙補充：</div>${item.grammar}`;
+      } else {
+        grammarNotes.classList.add('hidden');
+      }
+
+      // Show modal & clear canvas
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        clearCanvas();
+        setDrawTool('marker-yellow');
+      }, 50);
+    }
+
+    function toggleModalExplanation() {
+      const card = document.getElementById('modalExplanationCard');
+      const toggleText = document.getElementById('modalToggleExplText');
+      if (card.classList.contains('hidden')) {
+        card.classList.remove('hidden');
+        toggleText.innerText = '隱藏詳解';
+      } else {
+        card.classList.add('hidden');
+        toggleText.innerText = '顯示詳解與答案';
+      }
+    }
+
+    function closeQuestionModal() {
+      document.getElementById('questionModal').classList.add('hidden');
+      clearCanvas();
+    }
+
+    function navigateModalQuestion(direction) {
+      const list = examData[currentModalCategory];
+      if (!list) return;
+      const currentIndex = list.findIndex(x => x.id === currentModalId);
+      const nextIndex = currentIndex + direction;
+      if (nextIndex >= 0 && nextIndex < list.length) {
+        openQuestionModal(currentModalCategory, list[nextIndex].id);
+      }
+    }
+
+    // Keyboard navigation (Esc to close)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeQuestionModal();
+      }
+    });
+
+    // Bulk Expand / Collapse on Summary Page
+    function expandAllSummary() {
+      switchTab('sec6');
+    }
+    function collapseAllSummary() {
+      switchTab('summary');
+    }
+
+    // Window Init
+    window.onload = function() {
+      renderSectionCards();
+      initCanvas();
+      // Set active marker color
+      setDrawTool('marker-yellow');
+    };
+  </script>
+</body>
+</html>
