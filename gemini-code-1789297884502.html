@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>龍騰英文1-U1解答與投影講解教學系統</title>
+    <!-- 引入 Inter 現代字型與 Lucide 圖示 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --primary-light: #EEF2FF;
+            --primary-dark: #3730A3;
+            --accent: #EC4899;
+            --bg-main: #F8FAFC;
+            --surface: #FFFFFF;
+            --text-dark: #0F172A;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --font-scale: 1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            font-size: calc(16px * var(--font-scale));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 頂部 Header - 完全復刻截圖質感 */
+        .app-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            sticky: top;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .brand-title {
+            font-size: calc(1.15rem * var(--font-scale));
+            font-weight: 700;
+            color: #1E293B;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-subtitle {
+            font-size: calc(0.75rem * var(--font-scale));
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .badge-lesson {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: calc(0.75rem * var(--font-scale));
+            font-weight: 600;
+        }
+
+        /* 工具控制區 */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            background: #F1F5F9;
+            padding: 3px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-tool {
+            background: transparent;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 7px;
+            font-size: calc(0.85rem * var(--font-scale));
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-tool:hover { background: var(--surface); }
+        .btn-tool.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+        
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: calc(0.85rem * var(--font-scale));
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+        .btn-action:hover { background: var(--primary-hover); }
+
+        /* Navigation Tabs - 現代化動態標籤 */
+        .nav-tabs-container {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            font-size: calc(0.9rem * var(--font-scale));
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover { color: var(--primary); background: #F8FAFC; }
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: #F1F5F9;
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* 內容區塊 container */
+        .main-container {
+            flex-grow: 1;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 卡片設計 */
+        .q-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .q-card:hover { box-shadow: var(--shadow-md); border-color: #CBD5E1; }
+        
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .q-tag {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: calc(0.9rem * var(--font-scale));
+        }
+
+        /* 文章對照區塊 */
+        .passage-box {
+            background: #EFF6FF;
+            border-left: 4px solid #3B82F6;
+            padding: 20px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 24px;
+            line-height: 1.7;
+            font-size: calc(1rem * var(--font-scale));
+        }
+
+        .passage-title { font-weight: 700; color: #1E40AF; margin-bottom: 8px; }
+
+        /* 純解答區 (快速對答案) */
+        .grading-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .grading-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .grading-num { font-size: calc(0.85rem * var(--font-scale)); color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+        .grading-ans { font-size: calc(1.4rem * var(--font-scale)); font-weight: 800; color: #D97706; }
+
+        .sec-title-banner {
+            grid-column: 1 / -1;
+            font-size: calc(1.1rem * var(--font-scale));
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: var(--primary-light);
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        /* 翻譯分段色塊 */
+        .trans-block {
+            line-height: 2.2;
+            font-size: calc(1.1rem * var(--font-scale));
+            background: #F8FAFC;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .seg { display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 6px; font-weight: 600; }
+        .seg-1 { background: #E0F2FE; color: #0369A1; } /* 天藍 */
+        .seg-2 { background: #FCE7F3; color: #BE185D; } /* 桃紅 */
+        .seg-3 { background: #DCFCE7; color: #15803D; } /* 綠色 */
+        .seg-4 { background: #FEF3C7; color: #B45309; } /* 橘黃 */
+        .score-badge { font-size: 0.75em; opacity: 0.85; margin-left: 4px; font-weight: 700;}
+
+        /* 全螢幕彈窗 Modal */
+        .modal-mask {
+            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px); z-index: 100; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-mask.active { display: flex; }
+
+        .modal-window {
+            background: var(--surface); width: 100%; max-width: 1000px; height: 90vh;
+            border-radius: 20px; display: flex; flex-direction: column; position: relative;
+            box-shadow: var(--shadow-lg); overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 24px; background: #F8FAFC; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+
+        .modal-body {
+            flex-grow: 1; padding: 32px; overflow-y: auto; z-index: 5;
+            font-size: calc(1.2rem * var(--font-scale)); line-height: 1.7;
+        }
+
+        /* 畫布劃記圖層 */
+        #annotation-canvas {
+            position: absolute; inset: 0; z-index: 20; pointer-events: none;
+        }
+        .drawing-active #annotation-canvas { pointer-events: auto; cursor: crosshair; }
+
+        /* 畫筆浮動工具列 */
+        .pen-bar {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1E293B; color: white; padding: 8px 16px; border-radius: 30px;
+            display: none; gap: 12px; align-items: center; z-index: 30; box-shadow: var(--shadow-lg);
+        }
+        .drawing-active .pen-bar { display: flex; }
+
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.active { border-color: white; transform: scale(1.15); }
+
+        /* 隱藏/顯示答案區 */
+        .ans-box {
+            display: none; margin-top: 20px; padding: 20px; background: #FEF2F2;
+            border-left: 4px solid #EF4444; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+        .ans-box.show { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <div>
+                <div class="brand-title">英文1 進階卷 解答與投影教學 <span class="badge-lesson">L1 Firsts in Life</span></div>
+                <div class="brand-subtitle">專為大螢幕投影、考卷對答案、彩色分段配分與隨堂劃記設計</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button id="draw-toggle-btn" class="btn-tool" onclick="toggleDrawingMode()">
+                ✏️ 劃記：已關閉
+            </button>
+            <div class="tool-group">
+                <button class="btn-tool" onclick="adjustFont(-0.1)">-</button>
+                <span style="font-size:0.85rem; font-weight:700; padding:0 8px;" id="scale-indicator">100%</span>
+                <button class="btn-tool" onclick="adjustFont(0.1)">+</button>
+                <button class="btn-tool" onclick="setFontScale(1.75)" style="color:var(--primary);">特大投影</button>
+            </div>
+            <button class="btn-action" onclick="toggleFullScreen()">全螢幕</button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-container" id="tabs-bar"></nav>
+
+    <!-- Main View Content -->
+    <main class="main-container" id="view-content"></main>
+
+    <!-- Fullscreen Modal for Classroom Discussion -->
+    <div class="modal-mask" id="detail-modal">
+        <div class="modal-window" id="modal-window">
+            <div class="modal-header">
+                <h3 id="modal-heading" style="font-size: calc(1.1rem * var(--font-scale)); color: var(--text-dark);">題目詳解模式</h3>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-action" style="background:#EF4444;" onclick="closeQuestionModal()">關閉視窗 (Esc)</button>
+                </div>
+            </div>
+            
+            <div class="modal-body" id="modal-body-container"></div>
+            
+            <!-- Canvas Overlay for Drawing -->
+            <canvas id="annotation-canvas"></canvas>
+
+            <!-- Floating Drawing Toolbar -->
+            <div class="pen-bar">
+                <span style="font-size:0.8rem; font-weight:600;">劃記筆：</span>
+                <div class="color-dot active" style="background: rgba(253, 224, 71, 0.6);" onclick="selectPen('rgba(253, 224, 71, 0.6)', 18, this)"></div>
+                <div class="color-dot" style="background: rgba(244, 114, 182, 0.6);" onclick="selectPen('rgba(244, 114, 182, 0.6)', 18, this)"></div>
+                <div class="color-dot" style="background: #EF4444;" onclick="selectPen('#EF4444', 3, this)"></div>
+                <button class="btn-tool" style="color:white; background:rgba(255,255,255,0.2); margin-left:8px;" onclick="resetCanvas()">清空劃記</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- 完整試卷資料庫 (包含PDF全部內容) ---
+    const FULL_EXAM_DATA = {
+        // 純答案專用
+        gradingKeys: [
+            { title: 'I. 文意字彙與詞類變化', items: ['1. reply', '2. skipped', '3. accident', '4. upset', '5. traditional', '6. reflecting', '7. ruined', '8. fortunate', '9. memorize', '10. depression'] },
+            { title: 'II. 綜合測驗', items: ['11. (C)', '12. (A)', '13. (B)', '14. (A)', '15. (C)', '16. (D)', '17. (C)', '18. (B)', '19. (A)', '20. (D)'] },
+            { title: 'III. 文意選填', items: ['21. (A)', '22. (D)', '23. (J)', '24. (C)', '25. (F)', '26. (E)', '27. (B)', '28. (G)', '29. (H)', '30. (I)'] },
+            { title: 'IV. 閱讀測驗', items: ['31. (D)', '32. (A)', '33. (C)'] },
+            { title: 'V. 混合題', items: ['34.(1) presentation', '34.(2) preparation', '35. (A)(B)(F)', '36. failure'] }
+        ],
+        // 翻譯配分拆解
+        translations: [
+            {
+                num: 37,
+                ch: '那家餐廳的牛排吃起來像鞋子的皮革。(5%)',
+                segs: [
+                    { text: 'The steak in that restaurant', score: '2%', cls: 'seg-1' },
+                    { text: 'tastes like', score: '2%', cls: 'seg-2' },
+                    { text: 'shoe leather.', score: '1%', cls: 'seg-3' }
+                ]
+            },
+            {
+                num: 38,
+                ch: 'Leo 不知道他女朋友昨天蹺課了。(7%)',
+                segs: [
+                    { text: 'Leo doesn’t/didn’t know', score: '3%', cls: 'seg-1' },
+                    { text: 'that his girlfriend skipped class yesterday.', score: '4%', cls: 'seg-2' }
+                ]
+            },
+            {
+                num: 39,
+                ch: 'Debbie 等不及為嘉年華(carnival)裝扮，而且她會確保她的服裝看起來色彩繽紛。(8%)',
+                segs: [
+                    { text: 'Debbie can’t wait to', score: '2%', cls: 'seg-1' },
+                    { text: 'dress up for the carnival', score: '2%', cls: 'seg-2' },
+                    { text: ', and she will make sure', score: '2%', cls: 'seg-3' },
+                    { text: 'that her costume looks colorful.', score: '2%', cls: 'seg-4' }
+                ]
+            }
+        ],
+        // 各大題題目細節
+        sections: {
+            "sec_vocab": {
+                name: "I. 文意字彙",
+                questions: [
+                    { id: 1, q: "Peter didn't r______y when I asked him whether he wanted another cup of coffee.", a: "reply", detail: "ask（詢問）後沒有「回覆 (reply)」。" },
+                    { id: 2, q: "Miss Lin s______ped the details of the passage and talked only about the main idea.", a: "skipped", detail: "語意為「跳過 (skipped)」細節，僅討論主旨。注意 p 重複字尾加 ed。" },
+                    { id: 3, q: "The study shows that a falling rock caused the a______t on the mountain road.", a: "accident", detail: "落石造成山路上的「意外事故 (accident)」。" },
+                    { id: 4, q: "Although she was u______t that she didn't win the science competition, Diana picked herself up and decided simply to work harder on her next project.", a: "upset", detail: "雖然沒有獲勝感到「難過沮喪的 (upset)」。" },
+                    { id: 5, q: "During the harvest festival, people of this tribe wore t______l costumes, danced to their tribal music, and enjoyed local foods.", a: "traditional", detail: "穿著「傳統的 (traditional)」服裝。" },
+                    { id: 6, q: "Alex's manager asked him to spend some time r______ting on how he could improve his performance.", a: "reflecting", detail: "spend time V-ing，花時間「反省/思考 (reflecting)」。" },
+                    { id: 7, q: "Linda really looked forward to the outdoor party, so she felt very disappointed when a sudden, heavy rainstorm r______ned it.", a: "ruined", detail: "暴風雨「毀了 (ruined)」戶外派對。" },
+                    { id: 8, q: "The Lin family was ______ (fortunately) to have survived the five-car pile-up on the highway.", a: "fortunate", detail: "was 後面接形容詞「幸運的 (fortunate)」。" },
+                    { id: 9, q: "Zoe managed to ______ (memory) the whole article within an hour.", a: "memorize", detail: "managed to + 動詞原形「背誦 (memorize)」。" },
+                    { id: 10, q: "Amy has suffered from ______ (depress) since her parents passed away.", a: "depression", detail: "suffer from + 名詞「憂鬱症 (depression)」。" }
+                ]
+            },
+            "sec_cloze": {
+                name: "III. 文意選填",
+                options: "(A) perfect (B) put; first (C) depressed (D) experience (E) yell (F) let; down (G) laugh (H) realize (I) remind (J) embarrassment",
+                passage: "On my first day of high school, I was so excited. I was hoping for a(n) [ 21 ] stage of my life. However, the day turned out to be an awful [ 22 ]. While running to class, I slipped on the wet floor. To avoid falling, I grabbed the first thing that came to hand. This, much to my [ 23 ], happened to be the handle of a fire alarm on the wall... I felt extremely awkward and [ 24 ]. I was worried that I might be punished and thus [ 25 ] my parents [ 25 ]. Soon, I was told that the principal wanted to see me. I was terrified that he would [ 26 ] at me in his office...",
+                questions: [
+                    { id: 21, q: "I was hoping for a(n) [ 21 ] stage of my life.", a: "(A) perfect", detail: "期待高中生活有一個「完美的 (perfect)」開端。" },
+                    { id: 22, q: "However, the day turned out to be an awful [ 22 ].", a: "(D) experience", detail: "轉折語氣，結果變成一次糟糕的「經驗 (experience)」。" },
+                    { id: 23, q: "This, much to my [ 23 ], happened to be...", a: "(J) embarrassment", detail: "much to one's embarrassment 意為「令某人極為尷尬的是」。" },
+                    { id: 24, q: "I felt extremely awkward and [ 24 ].", a: "(C) depressed", detail: "形容詞對稱，感到十分尷尬與「沮喪的 (depressed)」。" },
+                    { id: 25, q: "...and thus [ 25 ] my parents [ 25 ].", a: "(F) let; down", detail: "片語 let one's parents down 意為「讓父母失望」。" },
+                    { id: 26, q: "I was terrified that he would [ 26 ] at me in his office.", a: "(E) yell", detail: "yell at sb. 意為「對某人大吼大叫」。" },
+                    { id: 27, q: "...and should always [ 27 ] safety [ 27 ].", a: "(B) put; first", detail: "put safety first 意為「把安全放在第一位」。" },
+                    { id: 28, q: "...gave everyone a good [ 28 ] to start the term.", a: "(G) laugh", detail: "give everyone a good laugh 意為「帶給大家會心一笑/歡笑」。" },
+                    { id: 29, q: "This made me [ 29 ] something valuable...", a: "(H) realize", detail: "make sb. realize 意為「使某人體會/領悟到」。" },
+                    { id: 30, q: "I [ 30 ] myself to stay calm.", a: "(I) remind", detail: "remind oneself to V 意為「提醒自己保持冷靜」。" }
+                ]
+            },
+            "sec_reading": {
+                name: "IV. 閱讀測驗",
+                passage: "During the COVID-19 pandemic*, remote learning became a new way of receiving education. Since then, it has changed many people's learning experiences. In fact, remote learning comes with both benefits and challenges...\nA major advantage lies in its flexibility* and comfort. Imagine this: A student gets up in the morning, enjoys a relaxing breakfast, and prepares for a day of learning right in his or her own home...",
+                questions: [
+                    { id: 31, q: "What is the best title for this passage?", a: "(D) The Pros and Cons of Remote Learning", detail: "文章探討了遠距學習的優點 (benefits) 與挑戰 (challenges)，即利弊分析。" },
+                    { id: 32, q: "According to the passage, what is a positive aspect of remote learning?", a: "(A) It provides a flexible and comfortable learning environment.", detail: "第二段開頭明確指出優勢在於 flexibility and comfort。" },
+                    { id: 33, q: "Judging from the final sentence, what is the author's attitude toward remote learning?", a: "(C) Optimistic.", detail: "文末提及以積極態度可以迎向挑戰並善用教育機會，展現樂觀態度。" }
+                ]
+            },
+            "sec_mixed": {
+                name: "V. 混合題",
+                passage: "【Claire's Draft】\nI was chosen as the speaker for my team to present our work to the class. Because I didn't attend several group meetings, it turned out to be the first-ever failure of my life so far. I failed and felt embarrassed in front of my classmates and teacher. My group received a very low grade...\n\n【AI Chatbot Suggestions】\n(A) Introduce setting (B) Express feelings before (C) Talk about key parts/lessons (D) Describe senses (E) Share emotions (F) Include conversation details (G) End with changed values",
+                questions: [
+                    { id: 34, q: "Claire gave a poor group (1) ______ in class... do careful (2) ______ before taking part in any activity.", a: "(1) presentation ; (2) preparation", detail: "(1) 名詞 presentation (簡報/呈現) ; (2) 名詞 preparation (準備)。" },
+                    { id: 35, q: "Which ONES does Claire NOT follow in her story? (多選)", a: "(A)(B)(F)", detail: "草稿中未提及：(A)時間地點設定、(B)事前感受、(F)當時對話細節。" },
+                    { id: 36, q: "What does 'something or someone' refer to in Claire's story?", a: "failure", detail: "指第一段提出的 first-ever failure。" }
+                ]
+            }
+        }
+    };
+
+    // 選項 Tabs
+    const TABS_CONFIG = [
+        { id: 'tab_grading', label: '✓ 學生快速改考卷 (純答案)' },
+        { id: 'tab_trans', label: '★ 總覽與翻譯彩色分段' },
+        { id: 'sec_vocab', label: 'I. 文意字彙' },
+        { id: 'sec_cloze', label: 'III. 文意選填' },
+        { id: 'sec_reading', label: 'IV. 閱讀測驗' },
+        { id: 'sec_mixed', label: 'V. 混合題' }
+    ];
+
+    let activeTab = 'tab_grading';
+    let currentScale = 1.0;
+    
+    // 畫筆系統狀態
+    let isDrawingEnabled = false;
+    let isMouseDown = false;
+    let strokeColor = 'rgba(253, 224, 71, 0.6)';
+    let strokeWidth = 18;
+    let canvasContext = null;
+
+    window.onload = () => {
+        renderNavigationTabs();
+        switchViewTab(activeTab);
+        setupCanvasListeners();
+    };
+
+    function renderNavigationTabs() {
+        const bar = document.getElementById('tabs-bar');
+        bar.innerHTML = TABS_CONFIG.map(tab => 
+            `<div class="nav-tab ${tab.id === activeTab ? 'active' : ''}" onclick="switchViewTab('${tab.id}')">${tab.label}</div>`
+        ).join('');
+    }
+
+    function switchViewTab(tabId) {
+        activeTab = tabId;
+        renderNavigationTabs();
+        const view = document.getElementById('view-content');
+        view.innerHTML = '';
+
+        if (tabId === 'tab_grading') {
+            renderGradingView(view);
+        } else if (tabId === 'tab_trans') {
+            renderTranslationView(view);
+        } else {
+            renderSectionView(tabId, view);
+        }
+    }
+
+    /* 渲染純答案 */
+    function renderGradingView(container) {
+        let html = `<div style="margin-bottom:20px;"><h2 style="font-weight:700;">學生互改與速查專區 (純標準答案)</h2></div><div class="grading-grid">`;
+        FULL_EXAM_DATA.gradingKeys.forEach(sec => {
+            html += `<div class="sec-title-banner">${sec.title}</div>`;
+            sec.items.forEach(item => {
+                let parts = item.split('. ');
+                let num = parts[0];
+                let ans = parts[1] || parts[0];
+                html += `
+                    <div class="grading-item">
+                        <div class="grading-num">${num}</div>
+                        <div class="grading-ans">${ans}</div>
+                    </div>
+                `;
+            });
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    /* 渲染翻譯彩色分段 */
+    function renderTranslationView(container) {
+        let html = `<div style="margin-bottom:20px;">
+            <h2 style="font-weight:700;">VI. 翻譯題 (評分標準：分段給分，每一段錯1字扣1分直到該段扣完為止)</h2>
+        </div>`;
+        FULL_EXAM_DATA.translations.forEach(t => {
+            html += `
+                <div class="q-card">
+                    <div class="card-top">
+                        <span class="q-tag">第 ${t.num} 題</span>
+                    </div>
+                    <div style="font-weight:700; font-size:calc(1.1rem * var(--font-scale)); margin-bottom:12px;">${t.ch}</div>
+                    <div class="trans-block">`;
+            t.segs.forEach(s => {
+                html += `<span class="seg ${s.cls}">${s.text} <span class="score-badge">[${s.score}]</span></span>`;
+            });
+            html += `</div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    /* 渲染各大題題目 */
+    function renderSectionView(secKey, container) {
+        const data = FULL_EXAM_DATA.sections[secKey];
+        if (!data) return;
+
+        let html = `<h2 style="font-weight:700; margin-bottom:20px;">${data.name}</h2>`;
+        
+        if (data.passage) {
+            html += `<div class="passage-box"><div class="passage-title">📜 閱讀文本 / 情境：</div>${data.passage.replace(/\n/g, '<br>')}</div>`;
+        }
+
+        if (data.options) {
+            html += `<div style="background:#FFFBEB; border:1px solid #FCD34D; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; color:#92400E;">選項箱：${data.options}</div>`;
+        }
+
+        data.questions.forEach(q => {
+            html += `
+                <div class="q-card">
+                    <div class="card-top">
+                        <span class="q-tag">第 ${q.id} 題</span>
+                        <button class="btn-action" onclick="openQuestionModal('${secKey}', ${q.id})">點擊大螢幕檢討 🔍</button>
+                    </div>
+                    <div style="font-size:calc(1.1rem * var(--font-scale)); font-weight:500;">${q.q}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    /* 開啟投影彈窗 */
+    function openQuestionModal(secKey, qId) {
+        const sec = FULL_EXAM_DATA.sections[secKey];
+        const q = sec.questions.find(x => x.id === qId);
+
+        let body = '';
+        if (sec.passage) {
+            body += `<div class="passage-box" style="margin-bottom:20px; font-size:0.95em;">${sec.passage.replace(/\n/g, '<br>')}</div>`;
+        }
+        if (sec.options) {
+            body += `<div style="background:#FFFBEB; padding:10px 15px; border-radius:8px; margin-bottom:15px; font-size:0.9em; font-weight:600; color:#92400E;">選項：${sec.options}</div>`;
+        }
+        body += `
+            <div style="font-weight:700; font-size:calc(1.3rem * var(--font-scale)); margin-bottom:24px; color:#1E293B;">${q.id}. ${q.q}</div>
+            <button class="btn-action" id="reveal-ans-btn" onclick="document.getElementById('modal-ans-box').classList.add('show'); this.style.display='none';">顯示詳解與答案</button>
+            <div class="ans-box" id="modal-ans-box">
+                <div style="font-size:calc(1.4rem * var(--font-scale)); font-weight:800; color:#DC2626; margin-bottom:8px;">標準答案：${q.a}</div>
+                <div style="color:#475569; font-weight:500;"><strong>解析：</strong>${q.detail}</div>
+            </div>
+        `;
+
+        document.getElementById('modal-heading').innerText = `${sec.name} - 第 ${qId} 題`;
+        document.getElementById('modal-body-container').innerHTML = body;
+        document.getElementById('detail-modal').classList.add('active');
+
+        setTimeout(syncCanvasSize, 100);
+    }
+
+    function closeQuestionModal() {
+        document.getElementById('detail-modal').classList.remove('active');
+        resetCanvas();
+    }
+
+    /* 縮放系統 */
+    function adjustFont(delta) {
+        currentScale = Math.max(0.8, Math.min(2.5, currentScale + delta));
+        applyFontScale();
+    }
+    function setFontScale(scale) {
+        currentScale = scale;
+        applyFontScale();
+    }
+    function applyFontScale() {
+        document.documentElement.style.setProperty('--font-scale', currentScale);
+        document.getElementById('scale-indicator').innerText = Math.round(currentScale * 100) + '%';
+        setTimeout(syncCanvasSize, 150);
+    }
+
+    /* 全螢幕切換 */
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    }
+
+    /* 劃記畫布 logic */
+    function toggleDrawingMode() {
+        isDrawingEnabled = !isDrawingEnabled;
+        const btn = document.getElementById('draw-toggle-btn');
+        const modal = document.getElementById('modal-window');
+
+        if (isDrawingEnabled) {
+            btn.innerText = '✏️ 劃記：已開啟';
+            btn.classList.add('active');
+            modal.classList.add('drawing-active');
+        } else {
+            btn.innerText = '✏️ 劃記：已關閉';
+            btn.classList.remove('active');
+            modal.classList.remove('drawing-active');
+        }
+    }
+
+    function selectPen(color, width, el) {
+        strokeColor = color;
+        strokeWidth = width;
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        if (el) el.classList.add('active');
+    }
+
+    function setupCanvasListeners() {
+        const cvs = document.getElementById('annotation-canvas');
+        canvasContext = cvs.getContext('2d');
+
+        cvs.addEventListener('mousedown', (e) => {
+            if (!isDrawingEnabled) return;
+            isMouseDown = true;
+            const pos = getCanvasPos(cvs, e);
+            canvasContext.beginPath();
+            canvasContext.moveTo(pos.x, pos.y);
+        });
+
+        cvs.addEventListener('mousemove', (e) => {
+            if (!isMouseDown || !isDrawingEnabled) return;
+            const pos = getCanvasPos(cvs, e);
+            canvasContext.lineWidth = strokeWidth;
+            canvasContext.lineCap = 'round';
+            canvasContext.strokeStyle = strokeColor;
+            canvasContext.lineTo(pos.x, pos.y);
+            canvasContext.stroke();
+        });
+
+        window.addEventListener('mouseup', () => { isMouseDown = false; });
+    }
+
+    function getCanvasPos(cvs, e) {
+        const rect = cvs.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function syncCanvasSize() {
+        const cvs = document.getElementById('annotation-canvas');
+        const win = document.getElementById('modal-window');
+        if (cvs && win) {
+            cvs.width = win.clientWidth;
+            cvs.height = win.clientHeight;
+        }
+    }
+
+    function resetCanvas() {
+        const cvs = document.getElementById('annotation-canvas');
+        if (canvasContext && cvs) {
+            canvasContext.clearRect(0, 0, cvs.width, cvs.height);
+        }
+    }
+</script>
+</body>
+</html>
