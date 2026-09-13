@@ -319,6 +319,7 @@
         .ans-box.show { display: block; }
     </style>
 </head>
+<a href="index.html">返回首頁</a>
 <body>
 
     <!-- App Header -->
